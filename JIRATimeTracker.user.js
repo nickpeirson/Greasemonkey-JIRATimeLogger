@@ -5,6 +5,7 @@
 // @version     1
 // @grant       GM_addStyle
 // @require     Timer.js
+// @require     Worklog.js
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js
 // @require     http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.1.0/moment.min.js
 // ==/UserScript==

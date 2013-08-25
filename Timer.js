@@ -1,9 +1,6 @@
-function Timer(issueId, token, storage)
+function Timer()
 {
-    this.data = {
-        issueId : issueId,
-        token : token   
-    }
+    this.data = {}
     this.reset();
     this.storage = storage;
 }
