@@ -151,7 +151,7 @@ Worklog.prototype.getKey = function ()
     return 'worklog.'+this.getIssueId();
 };
 
-Timer.prototype.save = function ()
+Worklog.prototype.save = function ()
 {
     if (this.storage == null) {
         return;
@@ -159,18 +159,17 @@ Timer.prototype.save = function ()
     this.storage.setItem(this.getKey(), this.toJSON());
 };
 
-Timer.prototype.load = function (){
+Worklog.prototype.load = function (){
     if (this.storage == null) {
         return;
     }
-    timerData = this.storage.getItem(this.getKey());
-    console.log(timerData);
-    if (timerData != null) {
-        timer.fromJSON(timerData);
+    worklogData = this.storage.getItem(this.getKey());
+    if (worklogData != null) {
+        timer.fromJSON(worklogData);
     }
 };
 
-Timer.prototype.remove = function (){
+Worklog.prototype.remove = function (){
     if (this.storage == null) {
         return;
     }
