@@ -1,19 +1,71 @@
 function Worklog(issueId, token, storage, timerType)
 {
-    this.data = {
+    var data = {
         issueId : issueId,
         token : token
-    }
+    };
+    var timerType = (typeof timerType === 'undefined') ? Timer : timerType;
+    
+    this.reset = function()
+    {
+        data.currentTimer = null;
+        data.timers = new Array();
+    };
     this.reset();
-    this.storage = storage;
-    this.timerType = (typeof timerType === 'undefined') ? Timer : timerType;
-}
+    
+    this.getCurrentTimer = function()
+    {
+    	return data.currentTimer;
+    };
+    
+    this.addTimer = function(timer)
+    {
+    	if (this.getCurrentTimer() != null && currentTimer.isRunning()) {
+    		this.getCurrentTimer().stop();
+    	}
+    	data.currentTimer = timer;
+    	data.timers.push(timer);
+    };
+    
+    this.getTimerType = function()
+    {
+    	return timerType;
+    };
+    
+    this.getTimers = function()
+    {
+    	return data.timers;
+    };
+};
 
-Worklog.prototype.reset = function() {
-    this.data.elapsedTime = null;
-    this.data.currentTimer = null;
-    this.data.timers = new Array();
-}
+Worklog.prototype.start = function() {
+	currentTimer = this.getCurrentTimer();
+	if (currentTimer == null || !currentTimer.isRunning()) {
+		currentTimer = new (this.getTimerType())();
+		this.addTimer(currentTimer);
+	}
+	currentTimer.start();
+};
+
+Worklog.prototype.pause = function() {
+	currentTimer = this.getCurrentTimer();
+	if (currentTimer == null) {
+		throw "Can't pause a worklog that hasn't started"
+	}
+	if (!currentTimer.isRunning()) {
+		throw "Worklog is already paused"
+	}
+	currentTimer.stop();
+};
+
+Worklog.prototype.elapsed = function() {
+	elapsed = 0;
+	for (var i = 0; i < this.getTimers().length; i++) {
+		timer = this.getTimers()[i];
+		elapsed += timer.elapsed();
+	}
+	return elapsed;
+};
 
 Worklog.prototype.toJSON = function ()
 {

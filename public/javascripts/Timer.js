@@ -6,6 +6,7 @@ function Timer()
         data.stopTime = null;
         data.elapsedTime = null;
     };
+    this.reset();
     
     this.setStart = function (start) {
     	data.startTime = start;
