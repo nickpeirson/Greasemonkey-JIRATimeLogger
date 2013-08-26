@@ -24,7 +24,7 @@ describe("Timer", function() {
     expect(timer.isRunning()).toBe(true);
   });
 
-  it("will report that it's running after being started", function() {
+  it("will report that it's not running after being started then stopped", function() {
 	timer.start();
 	timer.stop();
     expect(timer.isRunning()).toBe(false);
@@ -53,20 +53,6 @@ describe("Timer", function() {
 	clock.tick(_TEN_MINS_IN_MS);
     timer.stop();
     expect(timer.elapsed()).toEqual(_TEN_MINS_IN_MS);
-  });
-  
-  it("elapsed time can be returned in seconds", function() {
-	timer.start();
-	clock.tick(_TEN_MINS_IN_MS);
-    timer.stop();
-    expect(timer.elapsedSecs()).toEqual(_TEN_MINS_IN_SECS);
-  });
-  
-  it("elapsed time can be returned in minutes", function() {
-	timer.start();
-	clock.tick(_TEN_MINS_IN_MS);
-    timer.stop();
-    expect(timer.elapsedMins()).toEqual(10);
   });
   
   it("elapsed returns zero after timer has been reset", function() {
@@ -100,6 +86,6 @@ describe("Timer", function() {
     timerJSON = timer.toJSON();
     deserialisedTimer = new Timer();
     deserialisedTimer.fromJSON(timerJSON);
-    expect(timer.elapsed()).toEqual(elapsed);
+    expect(deserialisedTimer.elapsed()).toEqual(elapsed);
   });
 });

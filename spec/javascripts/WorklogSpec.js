@@ -61,4 +61,35 @@ describe("Worklog", function() {
 		clock.tick(_TEN_MINS_IN_MS);
 		expect(worklog.elapsed()).toEqual(3 * _TEN_MINS_IN_MS);
 	});
+	  
+	  it("will return elapsed time in seconds", function() {
+		worklog.start();
+		clock.tick(_TEN_MINS_IN_MS);
+	    expect(worklog.elapsedSecs()).toEqual(_TEN_MINS_IN_SECS);
+	  });
+	  
+	  it("will return elapsed time in minutes", function() {
+		  worklog.start();
+		clock.tick(_TEN_MINS_IN_MS);
+	    expect(worklog.elapsedMins()).toEqual(10);
+	  });
+	  
+	  it("elapsed will be the same after serialising and deserialising", function() {
+		worklog.start();
+		clock.tick(_TEN_MINS_IN_MS);
+		worklog.pause();
+		clock.tick(_TEN_MINS_IN_MS);
+		worklog.start();
+		clock.tick(_TEN_MINS_IN_MS);
+		worklog.pause();
+		clock.tick(_TEN_MINS_IN_MS);
+		worklog.start();
+		clock.tick(_TEN_MINS_IN_MS);
+	    elapsedBeforeSerialise = worklog.elapsed();
+	    worklogJSON = worklog.toJSON();
+	    console.log(worklogJSON);
+	    deserialisedWorklog = new Worklog();
+	    deserialisedWorklog.fromJSON(worklogJSON);
+	    expect(deserialisedWorklog.elapsed()).toEqual(elapsedBeforeSerialise);
+	  });
 });

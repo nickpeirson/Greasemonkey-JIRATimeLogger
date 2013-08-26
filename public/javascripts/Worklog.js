@@ -1,10 +1,17 @@
 function Worklog(issueId, token, storage, timerType)
 {
+	var that = this;
     var data = {
         issueId : issueId,
         token : token
     };
     var timerType = (typeof timerType === 'undefined') ? Timer : timerType;
+
+    function deserialiseTimer(timerJSON) {
+		timer = new (that.getTimerType())();
+		timer.fromJSON(timerJSON);
+		return timer;
+    };
     
     this.reset = function()
     {
@@ -18,13 +25,25 @@ function Worklog(issueId, token, storage, timerType)
     	return data.currentTimer;
     };
     
+    this.getIssueId = function()
+    {
+    	return data.issueId;
+    };
+    
+    this.getToken = function()
+    {
+    	return data.getToken;
+    };
+    
     this.addTimer = function(timer)
     {
-    	if (this.getCurrentTimer() != null && currentTimer.isRunning()) {
-    		this.getCurrentTimer().stop();
+    	if (this.getCurrentTimer() != null) {
+    		if (this.getCurrentTimer().isRunning()) {
+    			this.getCurrentTimer().stop();
+    		}
+        	data.timers.push(this.getCurrentTimer());
     	}
     	data.currentTimer = timer;
-    	data.timers.push(timer);
     };
     
     this.getTimerType = function()
@@ -36,30 +55,49 @@ function Worklog(issueId, token, storage, timerType)
     {
     	return data.timers;
     };
+
+    this.toJSON = function ()
+    {
+        return JSON.stringify(data);
+    };
+
+    this.fromJSON = function (jsonString)
+    {
+        data = JSON.parse(jsonString);
+    	for (var i = 0; i < data.timers.length; i++) {
+    		data.timers[i] = deserialiseTimer(data.timers[i]);
+    	}
+    	if (data.currentTimer != null) {
+    		data.currentTimer = deserialiseTimer(data.currentTimer);
+    	}
+    	console.log(data);
+    };
 };
 
+Worklog.prototype._MS_PER_SEC = 1000;
+Worklog.prototype._MS_PER_MIN = 60 * 1000;
+
 Worklog.prototype.start = function() {
-	currentTimer = this.getCurrentTimer();
-	if (currentTimer == null || !currentTimer.isRunning()) {
-		currentTimer = new (this.getTimerType())();
-		this.addTimer(currentTimer);
+	if (this.getCurrentTimer() == null
+			|| !this.getCurrentTimer().isRunning()) {
+		timer = new (this.getTimerType())();
+		this.addTimer(timer);
 	}
-	currentTimer.start();
+	this.getCurrentTimer().start();
 };
 
 Worklog.prototype.pause = function() {
-	currentTimer = this.getCurrentTimer();
-	if (currentTimer == null) {
-		throw "Can't pause a worklog that hasn't started"
+	if (this.getCurrentTimer() == null) {
+		throw new Error("Can't pause a worklog that hasn't started");
 	}
-	if (!currentTimer.isRunning()) {
-		throw "Worklog is already paused"
+	if (!this.getCurrentTimer().isRunning()) {
+		throw new Error("Worklog is already paused");
 	}
-	currentTimer.stop();
+	this.getCurrentTimer().stop();
 };
 
 Worklog.prototype.elapsed = function() {
-	elapsed = 0;
+	elapsed = this.getCurrentTimer().elapsed();
 	for (var i = 0; i < this.getTimers().length; i++) {
 		timer = this.getTimers()[i];
 		elapsed += timer.elapsed();
@@ -67,15 +105,15 @@ Worklog.prototype.elapsed = function() {
 	return elapsed;
 };
 
-Worklog.prototype.toJSON = function ()
+Worklog.prototype.elapsedSecs = function()
 {
-    return JSON.stringify(this.data);
-}
+    return Math.ceil(this.elapsed() / this._MS_PER_SEC);
+};
 
-Worklog.prototype.fromJSON = function (jsonString)
+Worklog.prototype.elapsedMins = function()
 {
-    this.data = JSON.parse(jsonString);
-}
+    return Math.ceil(this.elapsed() / this._MS_PER_MIN);
+};
 
 Worklog.prototype.log = function ()
 {
@@ -106,4 +144,35 @@ Worklog.prototype.log = function ()
     if (confirm('Continue work on this ticket?')) {
         this.start();
     }
-}; 
+};
+
+Worklog.prototype.getKey = function ()
+{
+    return 'worklog.'+this.getIssueId();
+};
+
+Timer.prototype.save = function ()
+{
+    if (this.storage == null) {
+        return;
+    }
+    this.storage.setItem(this.getKey(), this.toJSON());
+};
+
+Timer.prototype.load = function (){
+    if (this.storage == null) {
+        return;
+    }
+    timerData = this.storage.getItem(this.getKey());
+    console.log(timerData);
+    if (timerData != null) {
+        timer.fromJSON(timerData);
+    }
+};
+
+Timer.prototype.remove = function (){
+    if (this.storage == null) {
+        return;
+    }
+    this.storage.removeItem(this.getKey());
+};

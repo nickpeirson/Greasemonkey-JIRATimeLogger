@@ -49,13 +49,10 @@ function Timer()
     };
 }
 
-Timer.prototype._MS_PER_SEC = 1000;
-Timer.prototype._MS_PER_MIN = 60 * 1000;
-
 Timer.prototype.start = function ()
 {
 	if (this.getStart() != null) {
-		throw "Timer has already been started";
+		throw new Error("Timer has already been started");
 	}
     this.setStart(new Date());
     this.setElapsed(null);
@@ -65,7 +62,7 @@ Timer.prototype.start = function ()
 Timer.prototype.stop = function ()
 {
 	if (this.getStop() != null) {
-		throw "Timer has already been stopped";
+		throw new Error("Timer has already been stopped");
 	}
     this.setStop(new Date());
     this.setElapsed(this.elapsed());
@@ -75,7 +72,7 @@ Timer.prototype.stop = function ()
 Timer.prototype.isRunning = function ()
 {
 	return !(this.getStart() == null || this.getStop() != null);
-}
+};
 
 Timer.prototype.elapsed = function ()
 {
@@ -100,45 +97,4 @@ Timer.prototype.elapsed = function ()
     	this.setElapsed(elapsed);
     }
     return elapsed;
-};
-
-Timer.prototype.elapsedSecs = function()
-{
-    return Math.ceil(this.elapsed() / this._MS_PER_SEC);
-};
-
-Timer.prototype.elapsedMins = function()
-{
-    return Math.ceil(this.elapsed() / this._MS_PER_MIN);
-};
-
-Timer.prototype.getKey = function ()
-{
-    return 'timer.'+this.data.issueId;
-};
-
-Timer.prototype.save = function ()
-{
-    if (this.storage == null) {
-        return;
-    }
-    this.storage.setItem(this.getKey(), this.toJSON());
-};
-
-Timer.prototype.load = function (){
-    if (this.storage == null) {
-        return;
-    }
-    timerData = this.storage.getItem(this.getKey());
-    console.log(timerData);
-    if (timerData != null) {
-        timer.fromJSON(timerData);
-    }
-};
-
-Timer.prototype.remove = function (){
-    if (this.storage == null) {
-        return;
-    }
-    this.storage.removeItem(this.getKey());
 };
