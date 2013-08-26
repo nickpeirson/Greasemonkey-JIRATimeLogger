@@ -1,46 +1,89 @@
 function Timer()
 {
-    this.data = {};
-    this.reset();
+    var data = {};
+    this.reset = function() {
+        data.startTime = null;
+        data.stopTime = null;
+        data.elapsedTime = null;
+    };
+    
+    this.setStart = function (start) {
+    	data.startTime = start;
+    };
+    
+    this.getStart = function () {
+    	return data.startTime;
+    };
+    
+    this.setStop = function (stop) {
+    	data.stopTime = stop;
+    };
+    
+    this.getStop = function () {
+    	return data.stopTime;
+    };
+    
+    this.setElapsed = function (elapsed) {
+    	data.elapsedTime = elapsed;
+    };
+    
+    this.getElapsed = function () {
+    	return data.elapsedTime;
+    };
+
+    this.toJSON = function ()
+    {
+        return JSON.stringify(data);
+    };
+
+    this.fromJSON = function (jsonString)
+    {
+        data = JSON.parse(jsonString);
+        if (data.startTime != null) {
+            data.startTime = new Date(data.startTime);
+        }
+        if (data.endTime != null) {
+            data.endTime = new Date(data.endTime);
+        }
+    };
 }
 
 Timer.prototype._MS_PER_SEC = 1000;
 Timer.prototype._MS_PER_MIN = 60 * 1000;
 
-Timer.prototype.reset = function() {
-    this.data.startTime = null;
-    this.data.endTime = null;
-    this.data.elapsedTime = null;
-};
-
 Timer.prototype.start = function ()
 {
-	if (this.data.startTime != null) {
+	if (this.getStart() != null) {
 		throw "Timer has already been started";
 	}
-    this.data.startTime = new Date();
-    this.data.elapsedTime = null;
+    this.setStart(new Date());
+    this.setElapsed(null);
     this.save();
 };
 
 Timer.prototype.stop = function ()
 {
-	if (this.data.elapsedTime != null) {
+	if (this.getStop() != null) {
 		throw "Timer has already been stopped";
 	}
-    this.data.endTime = new Date();
-    this.data.elapsedTime = this.elapsed();
+    this.setStop(new Date());
+    this.setElapsed(this.elapsed());
     this.save();
 };
 
+Timer.prototype.isRunning = function ()
+{
+	return !(this.getStart() == null || this.getStop() != null);
+}
+
 Timer.prototype.elapsed = function ()
 {
-    if (this.data.elapsedTime != null) {
-        return this.data.elapsedTime;
+    if (this.getElapsed() != null) {
+        return this.getElapsed();
     }
     
-    endTime = this.data.endTime;
-    startTime = this.data.startTime;
+    endTime = this.getStop();
+    startTime = this.getStart();
     if (startTime == null && endTime == null) {
         return 0;
     }
@@ -51,7 +94,11 @@ Timer.prototype.elapsed = function ()
     if (startTime == null) {
         startTime = new Date();
     }
-    return endTime - this.data.startTime;
+    elapsed = endTime - this.getStart();
+    if (!this.isRunning()) {
+    	this.setElapsed(elapsed);
+    }
+    return elapsed;
 };
 
 Timer.prototype.elapsedSecs = function()
@@ -62,22 +109,6 @@ Timer.prototype.elapsedSecs = function()
 Timer.prototype.elapsedMins = function()
 {
     return Math.ceil(this.elapsed() / this._MS_PER_MIN);
-};
-
-Timer.prototype.toJSON = function ()
-{
-    return JSON.stringify(this.data);
-};
-
-Timer.prototype.fromJSON = function (jsonString)
-{
-    this.data = JSON.parse(jsonString);
-    if (this.data.startTime != null) {
-        this.data.startTime = new Date(this.data.startTime);
-    }
-    if (this.data.endTime != null) {
-        this.data.endTime = new Date(this.data.endTime);
-    }
 };
 
 Timer.prototype.getKey = function ()

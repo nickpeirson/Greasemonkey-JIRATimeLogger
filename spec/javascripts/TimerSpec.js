@@ -1,7 +1,9 @@
 describe("Timer", function() {
-  var timer;
   var _TEN_MINS_IN_MS = 10 * 60 * 1000;
   var _TEN_MINS_IN_SECS = 10 * 60;
+	  
+  var timer;
+  var clock;
   
   beforeEach(function() {
 	clock = sinon.useFakeTimers(new Date(2013, 8, 21, 15, 30).getTime());
@@ -10,25 +12,40 @@ describe("Timer", function() {
 
   it("will record the current time when started", function() {
 	timer.start();
-    expect(timer.data.startTime).toEqual(new Date(2013, 8, 21, 15, 30));
+    expect(timer.getStart()).toEqual(new Date(2013, 8, 21, 15, 30));
+  });
+
+  it("will report that it's not running before being started", function() {
+    expect(timer.isRunning()).toBe(false);
+  });
+
+  it("will report that it's running after being started", function() {
+	timer.start();
+    expect(timer.isRunning()).toBe(true);
+  });
+
+  it("will report that it's running after being started", function() {
+	timer.start();
+	timer.stop();
+    expect(timer.isRunning()).toBe(false);
   });
 
   it("start time doesn't change as time passes", function() {
 	timer.start();
 	clock.tick(_TEN_MINS_IN_MS);
-    expect(timer.data.startTime).toEqual(new Date(2013, 8, 21, 15, 30));
+    expect(timer.getStart()).toEqual(new Date(2013, 8, 21, 15, 30));
     
   });
   
   it("will record current time when stopped", function() {
     timer.stop();
-    expect(timer.data.endTime).toEqual(new Date(2013, 8, 21, 15, 30));
+    expect(timer.getStop()).toEqual(new Date(2013, 8, 21, 15, 30));
   });
   
   it("end time doesn't change as time passes", function() {
     timer.stop();
 	clock.tick(_TEN_MINS_IN_MS);
-    expect(timer.data.endTime).toEqual(new Date(2013, 8, 21, 15, 30));
+    expect(timer.getStop()).toEqual(new Date(2013, 8, 21, 15, 30));
   });
   
   it("elapsed time is the difference between start and stop time", function() {
@@ -57,8 +74,8 @@ describe("Timer", function() {
 	clock.tick(_TEN_MINS_IN_MS);
     timer.stop();
     timer.reset();
-    expect(timer.data.endTime).toBeNull();
-    expect(timer.data.startTime).toBeNull();
+    expect(timer.getStop()).toBeNull();
+    expect(timer.getStart()).toBeNull();
     expect(timer.elapsed()).toEqual(0);
   });
   
