@@ -14,4 +14,4 @@ Running tests
 If you have the [Jasmine](http://pivotal.github.io/jasmine/) ruby gem installed, tests can be run by running
 
     rake jasmine
-in the project directory and pointing your browser at http://localhost:8888/
+in the project directory and pointing your browser at [http://localhost:8888/](http://localhost:8888/)
