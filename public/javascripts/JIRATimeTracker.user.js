@@ -4,26 +4,12 @@
 // @include     /^https://[a-z]+\.atlassian\.net/browse/[A-Z]+-[0-9]+/
 // @version     1
 // @grant       GM_addStyle
+// @require     Duration.js
 // @require     Timer.js
 // @require     Worklog.js
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js
 // @require     http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.1.0/moment.min.js
 // ==/UserScript==
-
-toHHMMSS = function () {
-    var sec_num = parseInt(this, 10); // don't forget the second parm
-    var hours   = Math.floor(sec_num / 3600);
-    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-    var seconds = sec_num - (hours * 3600) - (minutes * 60);
-
-    if (hours   < 10) {hours   = "0"+hours;}
-    if (minutes < 10) {minutes = "0"+minutes;}
-    if (seconds < 10) {seconds = "0"+seconds;}
-    return hours+'h '+minutes+'m '+seconds+'s';
-}
-
-String.prototype.toHHMMSS = toHHMMSS;
-Number.prototype.toHHMMSS = toHHMMSS;
 
 //token = $("meta#atlassian-token").attr('content');
 token = $("input[name='atl_token']").val()
