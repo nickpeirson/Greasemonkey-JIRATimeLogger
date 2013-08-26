@@ -17,18 +17,21 @@
 token = $("input[name='atl_token']").val();
 issueId = $("input[name='id']").val();
 
-$.subscribe(Worklog.prototype._EVENT_START, function (){
+function togglePause(){
 	$("div#staticpanel button#start").html('Pause').one('click',
 		function() {
 		    worklog.pause();
 		});
-});
-$.subscribe(Worklog.prototype._EVENT_PAUSE, function (){
+}
+function toggleStart(){
 	$("div#staticpanel button#start").html('Start').one('click',
 		function() {
 		    worklog.start();
 		});
-});
+}
+
+$.subscribe(Worklog.prototype._EVENT_START, togglePause);
+$.subscribe(Worklog.prototype._EVENT_PAUSE, toggleStart);
 
 GM_addStyle ( "                                     \
     #staticpanel {                                  \
@@ -81,4 +84,7 @@ $("div#staticpanel button#log").click(function() {
 
 worklog = new Worklog(issueId, token, localStorage, jQuery);
 worklog.load();
+if (worklog.elapsed() == 0) {
+	toggleStart();
+}
 $("div#staticpanel").toggle();
