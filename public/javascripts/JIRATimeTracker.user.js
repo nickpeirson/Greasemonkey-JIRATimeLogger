@@ -8,15 +8,16 @@
 // @require     Timer.js
 // @require     Worklog.js
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js
+// @require     Pubsub.jquery.js
 // @require     http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.1.0/moment.min.js
 // ==/UserScript==
 
 //token = $("meta#atlassian-token").attr('content');
-token = $("input[name='atl_token']").val()
-issueId = $("input[name='id']").val()
+token = $("input[name='atl_token']").val();
+issueId = $("input[name='id']").val();
 
-timer = new Timer(issueId, token, localStorage);
-timer.load();
+worklog = new Worklog(issueId, token, localStorage, jQuery);
+worklog.load();
 
 GM_addStyle ( "                                     \
     #staticpanel {                                  \
@@ -29,36 +30,57 @@ GM_addStyle ( "                                     \
     #stopwatch {                                    \
         border:1px solid #C3702C;                   \
         margin: 0 auto;                             \
-        width:200px;                                \
+        width:180px;                                \
         background: rgba(195, 112, 44, 0.60);       \
     }                                               \
-    div#staticpanel span#elapsed {                  \
+    div#staticpanel div#elapsed {                   \
         color: rgba(255, 255, 255, 0.9);            \
         font-weight: bold;                          \
-        padding-left: 5px;                          \
+        padding-right: 2px;                         \
+        width: 95px;                                \
+        text-align: right;                          \
+        float: right;                               \
     }                                               \
 " );
 
 startButton = '<button type="button" id="start">Start</button>';
-stopButton = '<button type="button" id="stop">Stop</button>';
 logButton = '<button type="button" id="log">Log</button>';
-elapsedDisplay = '<span id="elapsed"></span>';
+elapsedDisplay = '<div id="elapsed">00h 00m 00s</span>';
 $("body").append('<div id="staticpanel"><div id="stopwatch">' + 
-    startButton + stopButton + logButton + elapsedDisplay + '</div></div>');
+    startButton + logButton + elapsedDisplay + '</div></div>');
 
-$("div#staticpanel button#start").click(function() {
-    timer.start()
-});
-$("div#staticpanel button#stop").click(function() {
-    timer.stop()
-});
+$("div#staticpanel button#start").one('click',
+	function() {
+	    worklog.start();
+	}
+);
+
 $("div#staticpanel button#log").click(function() {
-    timer.log();
+    try {
+		worklog.log();
+	    if (confirm('Continue work on this ticket?')) {
+	        worklog.start();
+	    }
+    } catch(e) {
+    	alert("Couldn't log timer:\n" + e.message);
+    }
+});
+$.subscribe('worklog/start', function (){
+	$("div#staticpanel button#start").html('Pause').one('click',
+		function() {
+		    worklog.pause();
+		});
+});
+$.subscribe('worklog/pause', function (){
+	$("div#staticpanel button#start").html('Start').one('click',
+		function() {
+		    worklog.start();
+		});
 });
 
 (function displayElapsed(){
     setTimeout(function(){
-          $('div#staticpanel span#elapsed').html(timer.elapsedSecs().toHHMMSS());
+          $('div#staticpanel div#elapsed').html(worklog.elapsedSecs().toHHMMSS());
           displayElapsed();
     }, 1000);
 })();

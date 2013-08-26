@@ -1,12 +1,13 @@
 describe("Worklog", function() {
 	var _TEN_MINS_IN_MS = 10 * 60 * 1000;
 	var _TEN_MINS_IN_SECS = 10 * 60;
+	var _INIT_DATE = new Date(2013, 8, 21, 15, 30);
 
 	var worklog;
 	var clock;
 
 	beforeEach(function() {
-		clock = sinon.useFakeTimers(new Date(2013, 8, 21, 15, 30).getTime());
+		clock = sinon.useFakeTimers(_INIT_DATE.getTime());
 		worklog = new Worklog();
 	});
 
@@ -69,9 +70,13 @@ describe("Worklog", function() {
 	  });
 	  
 	  it("will return elapsed time in minutes", function() {
-		  worklog.start();
+		worklog.start();
 		clock.tick(_TEN_MINS_IN_MS);
 	    expect(worklog.elapsedMins()).toEqual(10);
+	  });
+	  
+	  it("will have zero elapsed time before it's started", function() {
+	    expect(worklog.elapsed()).toEqual(0);
 	  });
 	  
 	  it("elapsed will be the same after serialising and deserialising", function() {
@@ -87,9 +92,64 @@ describe("Worklog", function() {
 		clock.tick(_TEN_MINS_IN_MS);
 	    elapsedBeforeSerialise = worklog.elapsed();
 	    worklogJSON = worklog.toJSON();
-	    console.log(worklogJSON);
 	    deserialisedWorklog = new Worklog();
 	    deserialisedWorklog.fromJSON(worklogJSON);
 	    expect(deserialisedWorklog.elapsed()).toEqual(elapsedBeforeSerialise);
 	  });
+	  
+	  it("will publish a 'worklog/start' event when the worklog is started", function() {
+		spyOn(worklog, 'publish');
+		worklog.start();
+		expect(worklog.publish).toHaveBeenCalledWith('worklog/start');
+	  });
+	  
+	  it("will publish a 'worklog/pause' event when the worklog is paused", function() {
+		spyOn(worklog, 'publish');
+		worklog.start();
+		worklog.pause();
+		expect(worklog.publish).toHaveBeenCalledWith('worklog/pause');
+	  });
+	  
+	  it("will throw an exception if you try to get the start time before starting", function() {
+		expect(function() {
+			worklog.getStart();
+		}).toThrow();
+	  });
+	  
+	  it("will return the time from when the worklog was first started", function() {
+		worklog.start();
+		expect(worklog.getStart()).toEqual(_INIT_DATE);
+	  });
+	  
+	  it("will return the time from when the worklog was first started after being paused", function() {
+		worklog.start();
+		clock.tick(_TEN_MINS_IN_MS);
+		worklog.pause();
+		clock.tick(_TEN_MINS_IN_MS);
+		worklog.start();
+		expect(worklog.getStart()).toEqual(_INIT_DATE);
+	  });
+	  
+	it("will throw an error if you try to log with no time on the worklog", function() {
+		expect(function() {
+			worklog.log();
+		}).toThrow();
+	});
+	
+	it("will pause and reset the worklog after logging", function() {
+		worklog.start();
+		clock.tick(_TEN_MINS_IN_MS);
+		worklog.log();
+		clock.tick(_TEN_MINS_IN_MS);
+		expect(worklog.elapsed()).toEqual(0);
+	});
+	
+	it("can be restarted after logging time", function() {
+		worklog.start();
+		clock.tick(_TEN_MINS_IN_MS);
+		worklog.log();
+		worklog.start();
+		clock.tick(_TEN_MINS_IN_MS);
+		expect(worklog.elapsed()).toEqual(_TEN_MINS_IN_MS);
+	});
 });

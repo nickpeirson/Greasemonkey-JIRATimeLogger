@@ -56,7 +56,6 @@ Timer.prototype.start = function ()
 	}
     this.setStart(new Date());
     this.setElapsed(null);
-    this.save();
 };
 
 Timer.prototype.stop = function ()
@@ -66,7 +65,6 @@ Timer.prototype.stop = function ()
 	}
     this.setStop(new Date());
     this.setElapsed(this.elapsed());
-    this.save();
 };
 
 Timer.prototype.isRunning = function ()

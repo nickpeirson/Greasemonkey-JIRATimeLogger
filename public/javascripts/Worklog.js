@@ -1,16 +1,22 @@
-function Worklog(issueId, token, storage, timerType)
+function Worklog(issueId, token, storage, pubSub, timerType)
 {
 	var that = this;
     var data = {
         issueId : issueId,
         token : token
     };
+    var pubSub = (typeof pubSub === 'undefined') ? { publish : function(){} } : pubSub;
     var timerType = (typeof timerType === 'undefined') ? Timer : timerType;
 
     function deserialiseTimer(timerJSON) {
 		timer = new (that.getTimerType())();
 		timer.fromJSON(timerJSON);
 		return timer;
+    };
+    
+    this.publish = function(e)
+    {
+    	return pubSub.publish(e);
     };
     
     this.reset = function()
@@ -70,7 +76,6 @@ function Worklog(issueId, token, storage, timerType)
     	if (data.currentTimer != null) {
     		data.currentTimer = deserialiseTimer(data.currentTimer);
     	}
-    	console.log(data);
     };
 };
 
@@ -84,6 +89,8 @@ Worklog.prototype.start = function() {
 		this.addTimer(timer);
 	}
 	this.getCurrentTimer().start();
+    this.save();
+    this.publish( 'worklog/start' );
 };
 
 Worklog.prototype.pause = function() {
@@ -91,13 +98,18 @@ Worklog.prototype.pause = function() {
 		throw new Error("Can't pause a worklog that hasn't started");
 	}
 	if (!this.getCurrentTimer().isRunning()) {
-		throw new Error("Worklog is already paused");
+		return;
 	}
 	this.getCurrentTimer().stop();
+    this.save();
+    this.publish( 'worklog/pause' );
 };
 
 Worklog.prototype.elapsed = function() {
-	elapsed = this.getCurrentTimer().elapsed();
+	elapsed = 0;
+	if (this.getCurrentTimer() != null) {
+		elapsed = this.getCurrentTimer().elapsed();
+	}
 	for (var i = 0; i < this.getTimers().length; i++) {
 		timer = this.getTimers()[i];
 		elapsed += timer.elapsed();
@@ -115,35 +127,40 @@ Worklog.prototype.elapsedMins = function()
     return Math.ceil(this.elapsed() / this._MS_PER_MIN);
 };
 
+Worklog.prototype.getStart = function()
+{
+	if (this.getTimers().length > 0) {
+		return this.getTimers()[0].getStart();
+	}
+	if (this.getCurrentTimer() != null) {
+		return this.getCurrentTimer().getStart();
+	}
+	throw new Error('Must be started to get the start timer');
+};
+
 Worklog.prototype.log = function ()
 {
-    data = this.data;
-    console.log(data);
-    if (this.data.startTime == null){
-        alert('No time has been recorded to log');
-        return;
+    if (this.elapsed() == 0){
+        throw new Error('No time has been recorded to log');
     }
     
-    this.stop();
-    startDate = moment(this.data.startTime).format("D/MMM/YY H:mm A");
-    worklog = {
+    this.pause();
+    startDate = moment(this.getStart()).format("D/MMM/YY H:mm A");
+    JIRAworklog = {
         "adjustEstimate" : "auto",
-        "atl_token" : token,
+        "atl_token" : this.getToken(),
         "comment" : "",
         "commentLevel" : "",
         "decorator" : "dialog",
-        "id" : issueId,
+        "id" : this.getIssueId(),
         "inline" : "true",
         "startDate" : "" + startDate,
         "timeLogged" : "" + this.elapsedMins() + "m",
         "worklogId" : ""
     };
-    console.log(worklog);
-    //$.post('/secure/CreateWorklog.jspa', worklog);
-    this.remove();
-    if (confirm('Continue work on this ticket?')) {
-        this.start();
-    }
+    console.log(JIRAworklog);
+    //$.post('/secure/CreateWorklog.jspa', JIRAworklog);
+    this.reset();
 };
 
 Worklog.prototype.getKey = function ()
@@ -165,7 +182,7 @@ Worklog.prototype.load = function (){
     }
     worklogData = this.storage.getItem(this.getKey());
     if (worklogData != null) {
-        timer.fromJSON(worklogData);
+        this.fromJSON(worklogData);
     }
 };
 
@@ -174,4 +191,5 @@ Worklog.prototype.remove = function (){
         return;
     }
     this.storage.removeItem(this.getKey());
+    this.reset();
 };
