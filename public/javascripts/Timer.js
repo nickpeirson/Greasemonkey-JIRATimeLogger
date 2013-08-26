@@ -1,4 +1,4 @@
-function Timer(dateType)
+function Timer()
 {
     this.data = {};
     this.reset();
@@ -13,22 +13,6 @@ Timer.prototype.reset = function() {
     this.data.elapsedTime = null;
 };
 
-Timer.prototype.toJSON = function ()
-{
-    return JSON.stringify(this.data);
-};
-
-Timer.prototype.fromJSON = function (jsonString)
-{
-    this.data = JSON.parse(jsonString);
-    if (this.data.startTime != null) {
-        this.data.startTime = new Date(this.data.startTime);
-    }
-    if (this.data.endTime != null) {
-        this.data.endTime = new Date(this.data.endTime);
-    }
-};
-
 Timer.prototype.start = function ()
 {
 	if (this.data.startTime != null) {
@@ -37,37 +21,6 @@ Timer.prototype.start = function ()
     this.data.startTime = new Date();
     this.data.elapsedTime = null;
     this.save();
-};
-
-Timer.prototype.getKey = function ()
-{
-    return 'timer.'+this.data.issueId;
-};
-
-Timer.prototype.save = function ()
-{
-    if (this.storage == null) {
-        return;
-    }
-    this.storage.setItem(this.getKey(), this.toJSON());
-};
-
-Timer.prototype.load = function (){
-    if (this.storage == null) {
-        return;
-    }
-    timerData = this.storage.getItem(this.getKey());
-    console.log(timerData);
-    if (timerData != null) {
-        timer.fromJSON(timerData);
-    }
-};
-
-Timer.prototype.remove = function (){
-    if (this.storage == null) {
-        return;
-    }
-    this.storage.removeItem(this.getKey());
 };
 
 Timer.prototype.stop = function ()
@@ -109,4 +62,51 @@ Timer.prototype.elapsedSecs = function()
 Timer.prototype.elapsedMins = function()
 {
     return Math.ceil(this.elapsed() / this._MS_PER_MIN);
+};
+
+Timer.prototype.toJSON = function ()
+{
+    return JSON.stringify(this.data);
+};
+
+Timer.prototype.fromJSON = function (jsonString)
+{
+    this.data = JSON.parse(jsonString);
+    if (this.data.startTime != null) {
+        this.data.startTime = new Date(this.data.startTime);
+    }
+    if (this.data.endTime != null) {
+        this.data.endTime = new Date(this.data.endTime);
+    }
+};
+
+Timer.prototype.getKey = function ()
+{
+    return 'timer.'+this.data.issueId;
+};
+
+Timer.prototype.save = function ()
+{
+    if (this.storage == null) {
+        return;
+    }
+    this.storage.setItem(this.getKey(), this.toJSON());
+};
+
+Timer.prototype.load = function (){
+    if (this.storage == null) {
+        return;
+    }
+    timerData = this.storage.getItem(this.getKey());
+    console.log(timerData);
+    if (timerData != null) {
+        timer.fromJSON(timerData);
+    }
+};
+
+Timer.prototype.remove = function (){
+    if (this.storage == null) {
+        return;
+    }
+    this.storage.removeItem(this.getKey());
 };
