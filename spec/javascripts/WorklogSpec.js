@@ -97,6 +97,33 @@ describe("Worklog", function() {
 	    expect(deserialisedWorklog.elapsed()).toEqual(elapsedBeforeSerialise);
 	  });
 	  
+	  it("will publish a 'worklog/start' event when deserialising a running timer", function() {
+		worklogJSON = '{"currentTimer":"{\\"startTime\\":\\"2013-09-21T14:30:00.000Z\\",\\"stopTime\\":null,\\"elapsedTime\\":null}","timers":[]}';
+		spyOn(worklog, 'publish');
+	    worklog.fromJSON(worklogJSON);
+		expect(worklog.publish).toHaveBeenCalledWith(worklog._EVENT_START);
+	  });
+	  
+	  it("will publish a 'worklog/pause' event when deserialising a paused timer", function() {
+		worklogJSON = '{"currentTimer":"{\\"startTime\\":\\"2013-09-21T14:30:00.000Z\\",\\"stopTime\\":\\"2013-09-21T14:30:00.000Z\\",\\"elapsedTime\\":null}","timers":[]}';
+		spyOn(worklog, 'publish');
+	    worklog.fromJSON(worklogJSON);
+		expect(worklog.publish).toHaveBeenCalledWith(worklog._EVENT_PAUSE);
+	  });
+	  
+	  it("will save when started", function() {
+		spyOn(worklog, 'save');
+		worklog.start();
+		expect(worklog.save).toHaveBeenCalled();
+	  });
+	  
+	  it("will save when paused", function() {
+		spyOn(worklog, 'save');
+		worklog.start();
+		worklog.pause();
+		expect(worklog.save.calls.length).toEqual(2);
+	  });
+	  
 	  it("will publish a 'worklog/start' event when the worklog is started", function() {
 		spyOn(worklog, 'publish');
 		worklog.start();

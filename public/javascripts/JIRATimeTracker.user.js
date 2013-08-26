@@ -1,3 +1,4 @@
+;
 // ==UserScript==
 // @name        JIRATimeTracker
 // @namespace   nickpeirson
@@ -16,8 +17,18 @@
 token = $("input[name='atl_token']").val();
 issueId = $("input[name='id']").val();
 
-worklog = new Worklog(issueId, token, localStorage, jQuery);
-worklog.load();
+$.subscribe(Worklog.prototype._EVENT_START, function (){
+	$("div#staticpanel button#start").html('Pause').one('click',
+		function() {
+		    worklog.pause();
+		});
+});
+$.subscribe(Worklog.prototype._EVENT_PAUSE, function (){
+	$("div#staticpanel button#start").html('Start').one('click',
+		function() {
+		    worklog.start();
+		});
+});
 
 GM_addStyle ( "                                     \
     #staticpanel {                                  \
@@ -26,6 +37,7 @@ GM_addStyle ( "                                     \
         position:fixed;                             \
         width:100%;                                 \
         z-index:100;                                \
+        display: none;                            \
     }                                               \
     #stopwatch {                                    \
         border:1px solid #C3702C;                   \
@@ -49,12 +61,6 @@ elapsedDisplay = '<div id="elapsed">00h 00m 00s</span>';
 $("body").append('<div id="staticpanel"><div id="stopwatch">' + 
     startButton + logButton + elapsedDisplay + '</div></div>');
 
-$("div#staticpanel button#start").one('click',
-	function() {
-	    worklog.start();
-	}
-);
-
 $("div#staticpanel button#log").click(function() {
     try {
 		worklog.log();
@@ -65,18 +71,6 @@ $("div#staticpanel button#log").click(function() {
     	alert("Couldn't log timer:\n" + e.message);
     }
 });
-$.subscribe('worklog/start', function (){
-	$("div#staticpanel button#start").html('Pause').one('click',
-		function() {
-		    worklog.pause();
-		});
-});
-$.subscribe('worklog/pause', function (){
-	$("div#staticpanel button#start").html('Start').one('click',
-		function() {
-		    worklog.start();
-		});
-});
 
 (function displayElapsed(){
     setTimeout(function(){
@@ -84,3 +78,7 @@ $.subscribe('worklog/pause', function (){
           displayElapsed();
     }, 1000);
 })();
+
+worklog = new Worklog(issueId, token, localStorage, jQuery);
+worklog.load();
+$("div#staticpanel").toggle();

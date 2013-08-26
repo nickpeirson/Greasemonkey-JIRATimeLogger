@@ -1,4 +1,4 @@
-function Worklog(issueId, token, storage, pubSub, timerType)
+;function Worklog(issueId, token, storage, pubSub, timerType)
 {
 	var that = this;
     var data = {
@@ -41,6 +41,18 @@ function Worklog(issueId, token, storage, pubSub, timerType)
     	return data.getToken;
     };
     
+    this.getStorage = function()
+    {
+        if (storage == null) {
+            return {
+            	getItem : function (){},
+            	setItem : function (){},
+            	removeItem : function (){},
+            };
+        }
+    	return storage;
+    };
+    
     this.addTimer = function(timer)
     {
     	if (this.getCurrentTimer() != null) {
@@ -70,17 +82,31 @@ function Worklog(issueId, token, storage, pubSub, timerType)
     this.fromJSON = function (jsonString)
     {
         data = JSON.parse(jsonString);
+        started = false;
     	for (var i = 0; i < data.timers.length; i++) {
     		data.timers[i] = deserialiseTimer(data.timers[i]);
+    		if (!started && data.timers[i].isRunning()) {
+    			started = true;
+    		}
     	}
     	if (data.currentTimer != null) {
     		data.currentTimer = deserialiseTimer(data.currentTimer);
+    		if (!started && data.currentTimer.isRunning()) {
+    			started = true;
+    		}
+    	}
+    	if (started) {
+    	    this.publish( this._EVENT_START );
+    	} else {
+    	    this.publish( this._EVENT_PAUSE );
     	}
     };
 };
 
 Worklog.prototype._MS_PER_SEC = 1000;
 Worklog.prototype._MS_PER_MIN = 60 * 1000;
+Worklog.prototype._EVENT_START = 'worklog/start';
+Worklog.prototype._EVENT_PAUSE = 'worklog/pause';
 
 Worklog.prototype.start = function() {
 	if (this.getCurrentTimer() == null
@@ -90,7 +116,7 @@ Worklog.prototype.start = function() {
 	}
 	this.getCurrentTimer().start();
     this.save();
-    this.publish( 'worklog/start' );
+    this.publish( this._EVENT_START );
 };
 
 Worklog.prototype.pause = function() {
@@ -102,7 +128,7 @@ Worklog.prototype.pause = function() {
 	}
 	this.getCurrentTimer().stop();
     this.save();
-    this.publish( 'worklog/pause' );
+    this.publish( this._EVENT_PAUSE );
 };
 
 Worklog.prototype.elapsed = function() {
@@ -170,26 +196,17 @@ Worklog.prototype.getKey = function ()
 
 Worklog.prototype.save = function ()
 {
-    if (this.storage == null) {
-        return;
-    }
-    this.storage.setItem(this.getKey(), this.toJSON());
+    this.getStorage().setItem(this.getKey(), this.toJSON());
 };
 
 Worklog.prototype.load = function (){
-    if (this.storage == null) {
-        return;
-    }
-    worklogData = this.storage.getItem(this.getKey());
+    worklogData = this.getStorage().getItem(this.getKey());
     if (worklogData != null) {
         this.fromJSON(worklogData);
     }
 };
 
 Worklog.prototype.remove = function (){
-    if (this.storage == null) {
-        return;
-    }
-    this.storage.removeItem(this.getKey());
+    this.getStorage().removeItem(this.getKey());
     this.reset();
 };

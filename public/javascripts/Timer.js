@@ -1,4 +1,4 @@
-function Timer()
+;function Timer()
 {
     var data = {};
     this.reset = function() {
