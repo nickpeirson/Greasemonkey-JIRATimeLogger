@@ -19,13 +19,6 @@
     	return pubSub.publish(e);
     };
     
-    this.reset = function()
-    {
-        data.currentTimer = null;
-        data.timers = new Array();
-    };
-    this.reset();
-    
     this.getCurrentTimer = function()
     {
     	return data.currentTimer;
@@ -101,6 +94,14 @@
     	    this.publish( this._EVENT_PAUSE );
     	}
     };
+    
+    this.reset = function()
+    {
+        data.currentTimer = null;
+        data.timers = new Array();
+        this.save();
+    };
+    this.reset();
 };
 
 Worklog.prototype._MS_PER_SEC = 1000;
@@ -184,8 +185,8 @@ Worklog.prototype.log = function ()
         "timeLogged" : "" + this.elapsedMins() + "m",
         "worklogId" : ""
     };
-    console.log(JIRAworklog);
-    //$.post('/secure/CreateWorklog.jspa', JIRAworklog);
+    //console.log(JIRAworklog);
+    $.post('/secure/CreateWorklog.jspa', JIRAworklog);
     this.reset();
 };
 

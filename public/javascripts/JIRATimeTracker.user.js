@@ -40,7 +40,7 @@ GM_addStyle ( "                                     \
         position:fixed;                             \
         width:100%;                                 \
         z-index:100;                                \
-        display: none;                            \
+        display: none;                              \
     }                                               \
     #stopwatch {                                    \
         border:1px solid #C3702C;                   \

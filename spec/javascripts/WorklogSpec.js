@@ -124,6 +124,12 @@ describe("Worklog", function() {
 		expect(worklog.save.calls.length).toEqual(2);
 	  });
 	  
+	  it("will save when reset", function() {
+		spyOn(worklog, 'save');
+		worklog.reset();
+		expect(worklog.save).toHaveBeenCalled();
+	  });
+	  
 	  it("will publish a 'worklog/start' event when the worklog is started", function() {
 		spyOn(worklog, 'publish');
 		worklog.start();
